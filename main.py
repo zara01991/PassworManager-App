@@ -1,6 +1,39 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
+import json
+
+# ---------------------------- SEARCH ------------------------------- #
+def search():
+
+    try:
+        with open("MyPasswordManager.json","r") as file:
+            data = json.load(file)
+
+
+    except FileNotFoundError:
+        messagebox.showinfo(title = "Error",message = "File not found")
+            
+
+    try:
+        website = websiteinput.get()[0].upper() + websiteinput.get()[1:].lower()
+        email  = data[website]["email"]
+        psw = data[website]["password"]
+        
+
+    except KeyError:
+        messagebox.showinfo(message = "Werbsite not found")
+
+    else:
+        messagebox.showinfo(message = f"Your {website} email: {email}\npassword: {psw}")
+        websiteinput.delete(0,tk.END)
+
+    
+         
+
+
+
+
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def pswgenerator():
@@ -39,7 +72,16 @@ def pswgenerator():
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def savepsw ():
-
+    website = websiteinput.get()[0].upper() + websiteinput.get()[1:].lower()
+    email = emailinput.get()
+    psw = pswinput.get()
+    new_data = {
+        website: {
+            "email":email,
+            "password": psw,
+        }
+                
+    }
     if websiteinput.get() == "" or emailinput.get() == "" or pswinput.get() == "":
         messagebox.showinfo(message = "Please don't leave any fields empty!")
     
@@ -49,11 +91,37 @@ def savepsw ():
         
         
         if is_ok:
-            with open ("MyPasswordManager.txt",mode = "a") as file:
-                l = websiteinput.get() + " | " + emailinput.get() + " | " + pswinput.get() +"\n"
-                file.write (l)
+            # with open ("MyPasswordManager.json",mode = "w") as file:
+            #     #l = websiteinput.get() + " | " + emailinput.get() + " | " + pswinput.get() +"\n"
+            #     # file.write (l)
+            #     json.dump(new_data,file, indent = 4)
+            
+            # # with open ("MyPasswordManager.json",mode = "r") as file:
+            # #     content = json.load(file)
+            # #     print(content)
+            try:
+                with open ("MyPasswordManager.json","r") as file:
+                    content = json.load(file)
+        
 
-            messagebox.showinfo(message = "Password saved!")
+            except FileNotFoundError:
+                with open ("MyPasswordManager.json","w") as file:
+                    json.dump(new_data,file, indent = 4)
+
+
+            except json.JSONDecodeError:
+                with open ("MyPasswordManager.json","w") as file:
+                    json.dump(new_data,file, indent = 4)
+
+            else:
+                content.update(new_data)
+                with open ("MyPasswordManager.json","w") as file:
+                    json.dump(content,file, indent = 4)
+
+            finally:  
+                messagebox.showinfo(message = "Password saved!")
+                websiteinput.delete(0,tk.END)
+                pswinput.delete(0,tk.END)
 
     
 
@@ -77,8 +145,8 @@ canvas.grid(column = 3, row = 1)
 websitelabel = tk.Label (text = "Website:",font = ("Arial",  15, "bold"), bg = "white",fg = "black")
 websitelabel.grid(column =2 , row = 2)
 
-websiteinput = tk.Entry(width = 40,bg = "white", fg = "black",highlightthickness=0, insertbackground = "black")
-websiteinput.grid(column = 3, row = 2, columnspan = 2)
+websiteinput = tk.Entry(width = 22,bg = "white", fg = "black",highlightthickness=0, insertbackground = "black")
+websiteinput.grid(column = 3, row = 2)
 websiteinput.focus()
 
 emaillabel = tk.Label (text = "Email/Username:",font = ("Arial",  15, "bold"), bg = "white",fg = "black")
@@ -104,5 +172,8 @@ generatorbutton.grid(column = 4, row= 4)
 
 addbutton = tk.Button(text = "Add" , width =37,  bg = "white", highlightbackground="white", command = savepsw)
 addbutton.grid(column = 3, row= 5, columnspan = 2)
+
+searchbutton = tk.Button(text = "Search" , width =13,  bg = "white", highlightbackground="white", command = search)
+searchbutton.grid(column = 4, row= 2)
 
 window.mainloop()
